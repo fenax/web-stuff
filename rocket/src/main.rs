@@ -145,6 +145,12 @@ async fn add_form(lang:Language,)->Template{
     Template::render("new_fur", context! { lang: lang.get() })
 }
 
+#[post("/add")]
+async fn add_form(lang:Language,)->Template{
+    Template::render("new_fur", context! { lang: lang.get() })
+}
+
+
 #[get("/read/<id>")]
 async fn read(lang:Language,conn: Connection<'_, Db>, id: i32) -> Template {
     let ret = 
