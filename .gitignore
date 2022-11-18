@@ -1,0 +1,7 @@
+/target
+*.sqlite*
+Cargo.lock
+**/Cargo.lock
+.#*
+**/*.rs.bk
+.env

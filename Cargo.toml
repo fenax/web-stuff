@@ -1,0 +1,6 @@
+[workspace]
+
+members = [
+    "migration","entity","rocket"
+]
+default-members = ["rocket"]
