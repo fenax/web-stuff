@@ -140,13 +140,37 @@ async fn add(conn: Connection<'_, Db>, name: String, species:String)->Template{
     Template::render("body", context! { body: ret.unwrap_or("not found".to_owned()), lang: "fr" })
 }
 
+#[get("/add")]
+async fn add_form(lang:Language,)->Template{
+    Template::render("new_fur", context! { lang: lang.get() })
+}
+
 #[get("/read/<id>")]
-async fn read(conn: Connection<'_, Db>, id: i32) -> Template {
+async fn read(lang:Language,conn: Connection<'_, Db>, id: i32) -> Template {
     let ret = 
-        Furry::find_by_id(id).one(conn.into_inner()).await.unwrap().map(|x|format!("{:?}",x));
+        Furry::find_by_id(id).one(conn.into_inner()).await.unwrap();
 
-        Template::render("body", context! { body: ret.unwrap_or("not found".to_owned()), lang: "fr" })
+    if let Some(val) = ret{
+        Template::render("one_fur", context!{fur: val, lang: lang.get() })
+    }else{
+        Template::render("body", context! {body: "failed", lang: lang.get() })
+    }
+}
 
+
+
+#[get("/list")]
+async fn list(lang:Language,conn: Connection<'_, Db>) -> Template {
+    let ret = 
+        Furry::find().all(conn.into_inner()).await.unwrap();
+        //Furry::find_by_id(id).one(conn.into_inner()).await.unwrap();
+
+    if ret.is_empty(){
+        Template::render("body", context! {body: "none", lang: lang.get() })
+    }else{
+        let len = ret.len();
+        Template::render("fur_list", context!{furs: ret, len , lang: lang.get() })
+    }
 }
 
 async fn run_migrations(rocket: Rocket<Build>) -> fairing::Result {
@@ -163,5 +187,5 @@ fn rocket() ->  _ {
         .attach(Template::custom(|engines|{
             engines.handlebars.register_helper("fluent", Box::new(FluentLoader::new(&*LOCALES)))
         }))
-        .mount("/", routes![index,loutre,delay,hello,cats,read,add])
+        .mount("/", routes![index,loutre,delay,hello,cats,read,add,list,add_form])
 }

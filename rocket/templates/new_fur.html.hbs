@@ -1,0 +1,9 @@
+{{> common/header }}
+    <form action="/add" method="post">
+        <label for="name">{{fluent "fur_name"}}</label><br>
+        <input type="text" id="name" name="name"><br>
+        <label for="lname">{{fluent "fur_species"}}</label><br>
+        <input type="text" id="species" name="species"><br><br>
+        <input type="submit" value="Submit">
+    </form>
+{{> common/footer }}
