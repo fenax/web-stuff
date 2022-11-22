@@ -3,13 +3,11 @@ extern crate rocket;
 
 
 use rocket::fairing::{self, AdHoc};
-use rocket::form::{Context, Form};
-use rocket::fs::{relative, FileServer};
-use rocket::response::{Flash, Redirect};
+use rocket::form::{ Form};
 use rocket::{Build, Rocket};
 
-use migration::{MigratorTrait, DbErr};
-use sea_orm::{EntityTrait, ActiveModelTrait, Set};
+use migration::{MigratorTrait};
+use sea_orm::{EntityTrait, ActiveModelTrait, Set, Unchanged};
 use sea_orm_rocket::{Connection, Database};
 
 mod pool;
@@ -18,8 +16,7 @@ use pool::Db;
 pub use entity::furry;
 pub use entity::furry::Entity as Furry;
 
-use rocket::http::Status;
-use rocket::request::{self, Outcome, FlashMessage, Request, FromRequest};
+use rocket::request::{self, Outcome, Request, FromRequest};
 use rocket::tokio::time::{sleep, Duration};
 use rocket_dyn_templates::{Template, context};
 use fluent_templates::{FluentLoader, static_loader};
@@ -145,11 +142,45 @@ async fn add_form(lang:Language,)->Template{
     Template::render("new_fur", context! { lang: lang.get() })
 }
 
-#[post("/add")]
-async fn add_form(lang:Language,)->Template{
-    Template::render("new_fur", context! { lang: lang.get() })
+#[get("/edit/<id>")]
+async fn edit_form(conn: Connection<'_, Db>, lang:Language,id:i32)->Template{
+    let ret = 
+    Furry::find_by_id(id).one(conn.into_inner()).await.unwrap();
+
+    if let Some(val) = ret{
+        Template::render("edit_fur", context! {id, fur:val, lang: lang.get() })
+
+    }else{
+        Template::render("body", context! {body: "failed", lang: lang.get() })
+    }
+
 }
 
+
+#[derive(FromForm)]
+struct AddFurry{
+    name:String,
+    species:String
+}
+#[post("/add",data = "<fur>")]
+async fn add_post(conn: Connection<'_, Db>, lang:Language,fur:Form<AddFurry>)->Template{
+    let ret = furry::ActiveModel{
+        name: Set(fur.name.to_owned()),
+        species: Set(Some(fur.species.to_owned())),
+        ..Default::default()
+    }.save(conn.into_inner()).await.map(|x|format!("{:?}",x));
+    Template::render("body", context! { body: ret.unwrap_or("not found".to_owned()), lang: lang.get()})
+}
+
+#[post("/edit/<id>",data="<fur>")]
+async fn edit_post(conn: Connection<'_, Db>, id:i32, fur:Form<AddFurry>)->Template{
+    let ret = furry::ActiveModel{
+        name: Set(fur.name.to_owned()),
+        species: Set(Some(fur.species.to_owned())),
+        id:Unchanged(id)
+    }.save(conn.into_inner()).await.map(|x|format!("{:?}",x));
+    Template::render("body", context! { body: ret.unwrap_or("not found".to_owned()), lang: "fr" })
+}
 
 #[get("/read/<id>")]
 async fn read(lang:Language,conn: Connection<'_, Db>, id: i32) -> Template {
@@ -193,5 +224,5 @@ fn rocket() ->  _ {
         .attach(Template::custom(|engines|{
             engines.handlebars.register_helper("fluent", Box::new(FluentLoader::new(&*LOCALES)))
         }))
-        .mount("/", routes![index,loutre,delay,hello,cats,read,add,list,add_form])
+        .mount("/", routes![index,loutre,delay,hello,cats,read,add,list,add_form,add_post,edit_form,edit_post])
 }

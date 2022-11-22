@@ -10,6 +10,7 @@ pub struct Model {
     pub id: i32,
     pub name: String,
     pub species: Option<String>,
+    pub password: Option<String>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]
