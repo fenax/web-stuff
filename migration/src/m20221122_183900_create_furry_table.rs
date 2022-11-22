@@ -19,6 +19,8 @@ impl MigrationTrait for Migration {
                     )
                     .col(ColumnDef::new(Furry::Name).string().not_null())
                     .col(ColumnDef::new(Furry::Species).string())
+                    .col(ColumnDef::new(Furry::PasswordHash).string().not_null())
+                    .col(ColumnDef::new(Furry::PasswordSalt).string().not_null())
                     .to_owned(),
             )
             .await
@@ -38,4 +40,6 @@ enum Furry {
     Id,
     Name,
     Species,
+    PasswordHash,
+    PasswordSalt,
 }
