@@ -10,3 +10,6 @@ impl MigratorTrait for Migrator {
         vec![Box::new(m20221122_183900_create_furry_table::Migration),]
     }
 }
+
+//TODO delete salt
+//TODO add session table
