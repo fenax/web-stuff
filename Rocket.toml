@@ -8,4 +8,4 @@ template_dir = "rocket/templates/"
 
 # Postgres
 # make sure to enable "sqlx-postgres" feature in Cargo.toml, i.e default = ["sqlx-postgres"]
-url = "postgres://db_test:theotterpassword@localhost/db_test"
+url = "postgres://db_test:thisisthetestpassword@localhost/db_test"
